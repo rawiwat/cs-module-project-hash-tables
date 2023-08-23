@@ -2,10 +2,15 @@ class HashTableEntry:
     """
     Linked List hash table key/value pair
     """
+
     def __init__(self, key, value):
         self.key = key
         self.value = value
         self.next = None
+
+    def change_value(self, new_value):
+        self.value *= new_value
+    # unnecessary
 
 
 # Hash table can't have fewer than this many slots
@@ -22,7 +27,14 @@ class HashTable:
 
     def __init__(self, capacity):
         # Your code here
-
+        # you can also do it like this
+        # self.capacity = max(capacity,MIN_CAPACITY)
+        if capacity < MIN_CAPACITY:
+            self.capacity = MIN_CAPACITY
+        else:
+            self.capacity = capacity
+        self.content = [None] * self.capacity
+        self.load = 0
 
     def get_num_slots(self):
         """
@@ -35,7 +47,7 @@ class HashTable:
         Implement this.
         """
         # Your code here
-
+        return self.capacity
 
     def get_load_factor(self):
         """
@@ -44,7 +56,9 @@ class HashTable:
         Implement this.
         """
         # Your code here
-
+        # return number of items divided by number of capacity
+        num_elements = sum(1 for entry in self.content if entry is not None)
+        return num_elements / self.capacity
 
     def fnv1(self, key):
         """
@@ -55,7 +69,6 @@ class HashTable:
 
         # Your code here
 
-
     def djb2(self, key):
         """
         DJB2 hash, 32-bit
@@ -63,14 +76,17 @@ class HashTable:
         Implement this, and/or FNV-1.
         """
         # Your code here
+        hash_value = 5381  # Initial hash value
 
+        for char in key:
+            hash_value = ((hash_value << 5) + hash_value) + ord(char)
+        return hash_value
 
     def hash_index(self, key):
         """
         Take an arbitrary key and return a valid integer index
         between within the storage capacity of the hash table.
         """
-        #return self.fnv1(key) % self.capacity
         return self.djb2(key) % self.capacity
 
     def put(self, key, value):
@@ -82,7 +98,21 @@ class HashTable:
         Implement this.
         """
         # Your code here
+        index = self.hash_index(key)
 
+        if self.content[index] is None:
+            self.content[index] = HashTableEntry(key, value)
+        else:
+            current = self.content[index]
+            while current.next:
+                if current.key == key:
+                    current.value = value
+                    return
+                current = current.next
+            if current.key == key:
+                current.value = value
+            else:
+                current.next = HashTableEntry(key, value)
 
     def delete(self, key):
         """
@@ -93,7 +123,18 @@ class HashTable:
         Implement this.
         """
         # Your code here
+        index = self.hash_index(key)
 
+        if self.content[index] is not None:
+            if self.content[index].key == key:
+                self.content[index] = self.content[index].next
+            else:
+                current = self.content[index]
+                while current.next:
+                    if current.next.key == key:
+                        current.next = current.next.next
+                        return
+                    current = current.next
 
     def get(self, key):
         """
@@ -104,7 +145,15 @@ class HashTable:
         Implement this.
         """
         # Your code here
+        index = self.hash_index(key)
+        current = self.content[index]
 
+        while current:
+            if current.key == key:
+                return current.value
+            current = current.next
+
+        return None
 
     def resize(self, new_capacity):
         """
@@ -114,7 +163,15 @@ class HashTable:
         Implement this.
         """
         # Your code here
+        old_content = self.content
+        self.content = [None] * new_capacity
+        self.capacity = new_capacity
 
+        for entry in old_content:
+            current = entry
+            while current:
+                self.put(current.key, current.value)
+                current = current.next
 
 
 if __name__ == "__main__":
