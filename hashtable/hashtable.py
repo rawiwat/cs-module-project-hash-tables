@@ -7,9 +7,10 @@ class HashTableEntry:
         self.key = key
         self.value = value
         self.next = None
+        self.load = 0
 
     def change_value(self, new_value):
-        self.value *= new_value
+        self.value = new_value
     # unnecessary
 
 
@@ -57,8 +58,7 @@ class HashTable:
         """
         # Your code here
         # return number of items divided by number of capacity
-        num_elements = sum(1 for entry in self.content if entry is not None)
-        return num_elements / self.capacity
+        return self.load / self.capacity
 
     def fnv1(self, key):
         """
@@ -99,20 +99,18 @@ class HashTable:
         """
         # Your code here
         index = self.hash_index(key)
+        current = self.content[index]
 
-        if self.content[index] is None:
-            self.content[index] = HashTableEntry(key, value)
-        else:
-            current = self.content[index]
-            while current.next:
-                if current.key == key:
-                    current.value = value
-                    return
-                current = current.next
+        while current:
             if current.key == key:
                 current.value = value
-            else:
-                current.next = HashTableEntry(key, value)
+                return
+            current = current.next
+
+        new_entry = HashTableEntry(key, value)
+        new_entry.next = self.content[index]
+        self.content[index] = new_entry
+        self.load += 1
 
     def delete(self, key):
         """
@@ -128,6 +126,7 @@ class HashTable:
         if self.content[index] is not None:
             if self.content[index].key == key:
                 self.content[index] = self.content[index].next
+                self.load -= 1
             else:
                 current = self.content[index]
                 while current.next:
