@@ -1,6 +1,18 @@
+ignore = '":;,.-+=/\|[]{}()*^&'
+
+
 def word_count(s):
     # Your code here
+    result = {}
+    filtered_text = [
+        word.strip(ignore).lower()
+        for word in s.split()
+        if word.strip(ignore)
+    ]
+    for text in filtered_text:
+        result[text] = result.get(text, 0) + 1
 
+    return result
 
 
 if __name__ == "__main__":
